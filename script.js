@@ -178,6 +178,28 @@ btnTransfer.addEventListener('click', function (e) {
     updateUI(currentAccount);
   }
 });
+
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  if (
+    inputCloseUsername.value === currentAccount.username &&
+    Number(inputClosePin.value) === Number(currentAccount.pin)
+  ) {
+    const index = accounts.findIndex(
+      acc => acc.username === currentAccount.username
+    );
+
+    //delete account
+    accounts.splice(index, 1);
+
+    //hide UI
+    containerApp.style.opacity = 0;
+  }
+  //clear input fields
+  inputClosePin.value = inputCloseUsername.value = '';
+});
+
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 // loops over aray and call function on every
 const firstWithdral = movements.find(mov => mov < 0);
