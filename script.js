@@ -44,7 +44,7 @@ const account2 = {
 
 const accounts = [account1, account2];
 
-/////////////////////////////////////////////////
+////////////
 // Elements
 const labelWelcome = document.querySelector('.welcome');
 const labelDate = document.querySelector('.date');
@@ -71,7 +71,7 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-/////////////////////////////////////////////////
+/////////////
 // Functions
 
 const formatMovementDate = function (date, locale) {
@@ -179,19 +179,44 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 };
 
-///////////////////////////////////////
+const startLogoutTimer = function () {
+  const tick = function () {
+    const min = `${Math.trunc(time / 60)}`.padStart(2, 0);
+    const sec = `${time % 60}`.padStart(2, 0);
+
+    //In each call, print remaining time to UI
+
+    labelTimer.textContent = `${min}:${sec}`;
+
+    //When 0 seconds, stop timer and log out user
+    if (time === 0) {
+      clearInterval(timer);
+      labelWelcome.textContent = `Log in to get started`;
+      containerApp.style.opacity = 0;
+    }
+    //Decrease 1s
+    time--;
+  };
+  // Set time to 5 minutes
+  let time = 120;
+  // Call timer every second
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+};
+
+//////////////////
 // Event handlers
-let currentAccount;
+let currentAccount, timer;
 
 // FAKE ALWAYS LOGGED IN
-currentAccount = account1;
-updateUI(currentAccount);
-containerApp.style.opacity = 100;
+// currentAccount = account1;
+// updateUI(currentAccount);
+// containerApp.style.opacity = 100;
 
 btnLogin.addEventListener('click', function (e) {
   // Prevent form from submitting
   e.preventDefault();
-
   currentAccount = accounts.find(
     acc => acc.username === inputLoginUsername.value
   );
@@ -233,6 +258,10 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 
+    //timer
+    if (timer) clearInterval(timer);
+    timer = startLogoutTimer();
+
     // Update UI
     updateUI(currentAccount);
   }
@@ -262,6 +291,10 @@ btnTransfer.addEventListener('click', function (e) {
 
     // Update UI
     updateUI(currentAccount);
+
+    // Reset timer
+    clearInterval(timer);
+    timer = startLogoutTimer();
   }
 });
 
@@ -271,14 +304,19 @@ btnLoan.addEventListener('click', function (e) {
   const amount = Math.floor(inputLoanAmount.value);
 
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
-    // Add movement
-    currentAccount.movements.push(amount);
+    setTimeout(function () {
+      // Add movement
+      currentAccount.movements.push(amount);
 
-    // Add loan date
-    currentAccount.movementsDates.push(new Date().toISOString());
+      // Add loan date
+      currentAccount.movementsDates.push(new Date().toISOString());
 
-    // Update UI
-    updateUI(currentAccount);
+      // Update UI
+      updateUI(currentAccount);
+      // Reset timer
+      clearInterval(timer);
+      timer = startLogoutTimer();
+    }, 2500);
   }
   inputLoanAmount.value = '';
 });
